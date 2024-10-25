@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { Auth } from './common/entitys/auth.entity';
 import { UserModule } from './user/user.module';
 import { User } from './common/entitys/user.entity';
+import { FirebaseModule } from './firebase/firebase.module';
+import { DepartamentModule } from './departament/departament.module';
 
 @Module({
   imports: [
@@ -21,11 +22,13 @@ import { User } from './common/entitys/user.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [Auth,User],
+      entities: [User],
       synchronize: true,
     }),
     AuthModule,
-    UserModule
+    UserModule,
+    FirebaseModule,
+    DepartamentModule
   ],
   controllers: [AppController],
   providers: [AppService],

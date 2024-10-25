@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsEnum, IsNotEmpty, IsOptional, IsEmail } from 'class-validator';
 import { Role } from '../../common/enums/role.enum';
 
 export class CreateUserDto {
@@ -11,8 +11,11 @@ export class CreateUserDto {
   lastName: string;
 
   @IsString()
-  @IsOptional()
-  employeeId: string;
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
 
   @IsString()
   @IsOptional()
@@ -33,6 +36,10 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   address?: string;
+
+  @IsString()
+  @IsOptional()
+  profileImageUrl: string;
 
   @IsEnum(Role)
   @IsOptional()

@@ -2,12 +2,12 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Delete,
   Body,
   Param,
   UseGuards,
-  Query,
+  UseInterceptors,
+  UploadedFile,
   Patch,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -16,7 +16,7 @@ import { RolesGuard } from 'src/common/guards/role.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 
 @Controller('user')
@@ -30,21 +30,46 @@ export class UserController {
     return await this.userService.createUser(createUserDto);
   }
 
+  @Get()
   @Roles(Role.ADMINISTRATOR)
-    @Get()
-    async getUsers() {
-      return await this.userService.getAllUsers();
-    }
+  async getAllUsers(
+    @Param('page') page: number,
+    @Param('limit') limit: number,
+    @Param('firstName') firstName?: string,
+    @Param('lastName') lastName?: string,
+  ) {
+    return await this.userService.getAllUsers(
+      page,
+      limit,
+      firstName,
+      lastName,
+    );
+  }
 
-    @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
-    @Patch(':id')
-    async updateUser(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-      return await this.userService.updateUser(id, updateUserDto);
-    }
+  @Get(':id')
+  @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
+  async getUserById(@Param('id') id: string) {
+    return await this.userService.getUserById(id);
+  }
 
-    @Roles(Role.ADMINISTRATOR)
-    @Delete(':id')
-    async deleteUser(@Param('id') id: number) {
-      return await this.userService.deleteUser(id);
-    }
+  @Patch(':id')
+  @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
+  async updateUser(@Param('id') id: string, @Body() updateUserDto) {
+    return await this.userService.updateUser(id, updateUserDto);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMINISTRATOR)
+  async deleteUser(@Param('id') id: string) {
+    return await this.userService.deleteUser(id);
+  }
+  
+  @Post('upload-image/:id')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.userService.uploadImage(file, id);
+  }
 }

@@ -1,67 +1,38 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, Generated } from 'typeorm';
-import { Auth } from './auth.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  Generated,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Role } from '../enums/role.enum';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Generated('uuid')
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column(
-    'varchar',
-    {
-      length: 255,
-      nullable: false,
-    },
-  )
+  @Column('varchar', {
+    length: 255,
+    nullable: false,
+  })
   firstName: string;
 
-  @Column(
-    'varchar',
-    {
-      length: 255,
-      nullable: false,
-    },
-  )
+  @Column('varchar', {
+    length: 255,
+    nullable: false,
+  })
   lastName: string;
 
-  @Generated('uuid')
-  @Column()
-  employeeId: string;
-
-  @Column(
-    'varchar',
-    {
-      length: 255,
-      nullable: true,
-    },
-  )
-  departmentId: string;
-
-  @Column({
-    type: 'varchar',
+  @Column('varchar', {
     length: 255,
-    nullable: true
+    nullable: false,
+    unique: true,
   })
-  position: string;
-
-  @Column({ type: 'date' , nullable: true })
-  dateOfBirth: Date;
-
-  @Column(
-    'varchar',
-    {
-      length: 255,
-      nullable: true,
-    },
-  )
-  phoneNumber: string;
-
-  @Column({ nullable: true })
-  address: string;
-
-  @Column({ default: false })
-  isDeleted: boolean;
+  email: string;
 
   @Column({
     type: 'enum',
@@ -70,6 +41,50 @@ export class User {
   })
   role: Role;
 
-  @OneToOne(() => Auth, (auth) => auth.user)
-  auth: Auth;
+  @Column('varchar', {
+    length: 255,
+    nullable: true,
+  })
+  @OneToOne(() => User)
+  departmentId: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  position: string;
+
+  @Column('varchar', {
+    length: 255,
+    nullable: true,
+  })
+  phoneNumber: string;
+
+  @Column({ type: 'date', nullable: true })
+  dateOfBirth: Date;
+
+  @Column({ nullable: true })
+  address: string;
+
+  @Column('varchar', {
+    length: 255,
+    nullable: true,
+  })
+  profileImageUrl: string;
+
+  @Column('varchar', {
+    length: 255,
+    nullable: false,
+  })
+  password: string;
+
+  @Column({ default: false })
+  isDeleted: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
