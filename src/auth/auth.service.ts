@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -6,90 +10,79 @@ import * as bcrypt from 'bcrypt';
 import { SignUpDTO } from './dto/signup.dto';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { Auth } from 'src/common/entitys/auth.entity';
-import { LogInDto } from './dto/login.dto';
-
+import { SignInDto } from './dto/signIn.dto';
+import { User } from 'src/common/entitys/user.entity';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(Auth)
-    private authRepository: Repository<Auth>,
-    private userService: UserService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private userService: UserService,
   ) {}
 
-  async signup(signupData: SignUpDTO): Promise<{ access_token: string; user: any }> {
-
-    const existingAuth = await this.authRepository.findOne({
+  async signUp(
+    signupData: SignUpDTO,
+  ): Promise<{ access_token: string; user: User }> {
+    const existingAuth = await this.userRepository.findOne({
       where: { email: signupData.email },
-      relations: ['user'],
     });
 
     if (existingAuth) {
       throw new ConflictException('Email already exists');
     }
-    const createUserDto = new CreateUserDto();
-    createUserDto.firstName = signupData.firstName;
-    createUserDto.lastName = signupData.lastName;
-    const user = await this.userService.createUser(createUserDto);
 
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(signupData.password, salt);
+    const createUserDto = new CreateUserDto();
+    createUserDto.firstName = signupData.firstName;
+    createUserDto.lastName = signupData.lastName;
+    createUserDto.email = signupData.email;
+    createUserDto.password = hashedPassword;
 
-    const auth = this.authRepository.create({
-      email: signupData.email,
-      password: hashedPassword,
-      user,
-    });
-
-    await this.authRepository.save(auth);
-
-    const token = await this.generateToken(auth.id, user.id);
+    const user = await this.userService.createUser(createUserDto);
+    const token = await this.generateToken(user.id, user.role);
 
     return {
       access_token: token,
-      user: {
-        id: user.id,
-        email: auth.email,
-        ...user,
-      },
+      user,
     };
   }
 
-  async logIn(signinData: LogInDto): Promise<{ access_token: string; user: any }> {
-    const { email, password } = signinData;
-
-    const auth = await this.authRepository.findOne({
-      where: { email },
-      relations: ['user'],
+  async signIn(
+    signinData: SignInDto,
+  ): Promise<{ access_token: string; user: User }> {
+    const user = await this.userRepository.findOne({
+      where: { email: signinData.email },
     });
 
-    if (!auth) {
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, auth.password);
+    const isPasswordValid = await bcrypt.compare(
+      signinData.password,
+      user.password,
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    const token = await this.generateToken(auth.id, auth.user.id);
+    const token = await this.generateToken(user.id, user.role);
 
     return {
       access_token: token,
-      user: {
-        id: auth.user.id,
-        email: auth.email,
-        ...auth.user,
-      },
+      user,
     };
   }
 
-  private async generateToken(authId: number, userId: number): Promise<string> {
+  private async generateToken(
+    userId: string,
+    userRole: string,
+  ): Promise<string> {
     return this.jwtService.signAsync({
-      sub: authId,
-      userId: userId,
+      sub: userId,
+      role: userRole,
     });
   }
 }

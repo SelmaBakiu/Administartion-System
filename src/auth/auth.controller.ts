@@ -1,8 +1,8 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDTO } from './dto/signUp.dto';
-import { LogInDto } from './dto/login.dto';
 import { Public } from 'src/common/decorators/public.decorator';
+import { SignInDto } from './dto/signIn.dto';
 
 
 @Controller('auth')
@@ -11,19 +11,18 @@ export class AuthController {
   
   @Public()
   @Post('/signup')
-  async signUp(@Body() SignUpDTO:SignUpDTO): Promise<{ access_token: string; user: any }> {
-    return await this.authService.signup(SignUpDTO);
+  async signUp(@Body() signUpDTO:SignUpDTO): Promise<{ access_token: string; user: any }> {
+    return await this.authService.signUp(signUpDTO);
   }
 
   @Public()
-  @Post('/login')
+  @Post('/signin')
   async signIn(
-    @Body() LogInDto: LogInDto,
+    @Body() signInDto: SignInDto,
   ): Promise<{ message: string; data: { access_token: string; user: any } }> {
-    const loginResult = await this.authService.logIn(LogInDto);
     return {
       message: 'Login successful',
-      data: loginResult,
+      data: await this.authService.signIn(signInDto),
     };
   }
 }

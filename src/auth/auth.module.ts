@@ -4,11 +4,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
-import { Auth } from 'src/common/entitys/auth.entity';
+import { User } from 'src/common/entitys/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Auth]),
+    TypeOrmModule.forFeature([User]),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET || 'your-secret-key',
