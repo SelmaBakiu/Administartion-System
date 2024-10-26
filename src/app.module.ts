@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { User } from './common/entitys/user.entity';
 import { FirebaseModule } from './firebase/firebase.module';
 import { DepartamentModule } from './departament/departament.module';
+import { Departament } from './common/entitys/departament.entity';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { DepartamentModule } from './departament/departament.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User],
+      entities: [User, Departament],
       synchronize: true,
     }),
     AuthModule,

@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -17,7 +18,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
-
 
 @Controller('user')
 @UseGuards(AuthGuard, RolesGuard)
@@ -33,17 +33,18 @@ export class UserController {
   @Get()
   @Roles(Role.ADMINISTRATOR)
   async getAllUsers(
-    @Param('page') page: number,
-    @Param('limit') limit: number,
-    @Param('firstName') firstName?: string,
-    @Param('lastName') lastName?: string,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('firstName') firstName?: string,
+    @Query('lastName') lastName?: string,
   ) {
-    return await this.userService.getAllUsers(
-      page,
-      limit,
-      firstName,
-      lastName,
-    );
+    return await this.userService.getAllUsers(page, limit, firstName, lastName);
+  }
+
+  @Get('departament/:id')
+  @Roles(Role.ADMINISTRATOR)
+  async getUsersByDepartament(@Param('id') id: string) {
+    return await this.userService.getUserByDepartmentId(id);
   }
 
   @Get(':id')
@@ -63,8 +64,9 @@ export class UserController {
   async deleteUser(@Param('id') id: string) {
     return await this.userService.deleteUser(id);
   }
-  
+
   @Post('upload-image/:id')
+  @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @Param('id') id: string,

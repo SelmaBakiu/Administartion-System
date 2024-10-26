@@ -12,7 +12,6 @@ export class Departament {
         {
         length: 255,
         nullable: false,
-        unique: true,
         },
     )
     name: string;
@@ -30,8 +29,16 @@ export class Departament {
         'varchar',
         {
         length: 255,
-        nullable: false,
+        nullable: true,
         },
     )
     parentDepartamentId: string;
+
+    @Column(
+        'boolean',
+        {
+        default: false,
+        },
+    )
+    isDeleted: boolean;
     }

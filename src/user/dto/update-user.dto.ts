@@ -46,5 +46,9 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
+  departamentId: string;
+
+  @IsString()
+  @IsOptional()
   file: string;
 }

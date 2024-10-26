@@ -14,7 +14,6 @@ export class FirebaseService {
       const fileName = `${Date.now()}_${file.mimetype.startsWith('image/') ? file.originalname.split('.').slice(0, -1).join('.') + '.webp' : file.originalname}`;
       const fileUpload = bucket.file(`${directoryToSave}/${fileName}`);
 
-      console.log('Uploading file:', file.originalname);
       let fileBuffer = file.buffer;
       const contentType = file.mimetype.startsWith('image/')
         ? 'image/webp'
@@ -59,7 +58,6 @@ export class FirebaseService {
 
       await fileUpload.makePublic();
       const publicUrl = fileUpload.publicUrl();
-      console.log('File uploaded:', publicUrl);
       return publicUrl;
     } catch (error) {
       console.error('Error uploading file:', error);

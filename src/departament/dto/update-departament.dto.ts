@@ -8,7 +8,7 @@ export class UpdateDepartamentDTO {
 
     @IsString()
     @IsOptional()
-    parentDepartamentId: string;
+    parentDepartamentId: string | null;
 
     @IsString()
     @IsOptional()
