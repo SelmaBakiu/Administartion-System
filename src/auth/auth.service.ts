@@ -23,7 +23,7 @@ export class AuthService {
 
   async signUp(
     signupData: SignUpDTO,
-  ): Promise<{ access_token: string; user: User }> {
+  ): Promise<{ token: string; user: User }> {
     const existingAuth = await this.userRepository.findOne({
       where: { email: signupData.email },
     });
@@ -44,14 +44,14 @@ export class AuthService {
     const token = await this.generateToken(user.id, user.role);
 
     return {
-      access_token: token,
+      token: token,
       user,
     };
   }
 
   async signIn(
     signinData: SignInDto,
-  ): Promise<{ access_token: string; user: User }> {
+  ): Promise<{ token: string; user: User }> {
     const user = await this.userRepository.findOne({
       where: { email: signinData.email },
     });
@@ -71,7 +71,7 @@ export class AuthService {
     const token = await this.generateToken(user.id, user.role);
 
     return {
-      access_token: token,
+     token: token,
       user,
     };
   }

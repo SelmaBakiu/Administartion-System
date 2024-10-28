@@ -22,8 +22,6 @@ export class UserService {
 
   async createUser(userData: CreateUserDto): Promise<User> {
     try {
-      //TODO check if departament is valid
-
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(userData.password, salt);
       userData.password = hashedPassword;
@@ -40,7 +38,8 @@ export class UserService {
       if (!existingUser) {
         throw new NotFoundException('User not found');
       }
-      const user = this.userRepository.update(id, userData);
+      const updateData = { ...userData, department: { id: userData.department } };
+      const user = this.userRepository.update(id, updateData);
       return user;
     } catch (err) {
       throw new Error(err);
@@ -49,7 +48,10 @@ export class UserService {
 
   async getUserById(id: string): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ where: { id } });
+      const user = await this.userRepository.findOne({ 
+        where: { id },
+        relations: ['department']
+      });
       if (!user) {
         throw new NotFoundException('User not found');
       }
@@ -74,6 +76,7 @@ export class UserService {
           firstName: firstName ? ILike(`%${firstName}%`) : undefined,
           lastName: lastName ? ILike(`%${lastName}%`) : undefined,
         },
+        relations: ['department'],
         order: { firstName: 'ASC' },
         take: limit,
         skip: page * limit,
@@ -95,7 +98,10 @@ export class UserService {
 
   async getUserByDepartmentId(departmentId: string): Promise<User[]> {
     try {
-      return await this.userRepository.find({ where: { departmentId } });
+      return await this.userRepository.find({ 
+        where: { departmentId },
+        relations: ['department']
+      });
     } catch (err) {
       throw new Error(err);
     }
