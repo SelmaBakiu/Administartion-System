@@ -9,6 +9,8 @@ import { User } from './common/entitys/user.entity';
 import { FirebaseModule } from './firebase/firebase.module';
 import { DepartamentModule } from './departament/departament.module';
 import { Departament } from './common/entitys/departament.entity';
+import { ChatModule } from './chat/chat.module';
+import { Message } from './common/entitys/message.entiry';
 
 @Module({
   imports: [
@@ -23,13 +25,14 @@ import { Departament } from './common/entitys/departament.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User, Departament],
+      entities: [User, Departament,Message],
       synchronize: true,
     }),
     AuthModule,
     UserModule,
     FirebaseModule,
-    DepartamentModule
+    DepartamentModule,
+    ChatModule
   ],
   controllers: [AppController],
   providers: [AppService],

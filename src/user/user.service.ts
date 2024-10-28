@@ -38,7 +38,10 @@ export class UserService {
       if (!existingUser) {
         throw new NotFoundException('User not found');
       }
-      const updateData = { ...userData, department: { id: userData.department } };
+      const updateData = {
+        ...userData,
+        department: { id: userData.department },
+      };
       const user = this.userRepository.update(id, updateData);
       return user;
     } catch (err) {
@@ -46,11 +49,24 @@ export class UserService {
     }
   }
 
+  async findOne(id: string): Promise<User> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id },
+      });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
   async getUserById(id: string): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ 
+      const user = await this.userRepository.findOne({
         where: { id },
-        relations: ['department']
+        relations: ['department'],
       });
       if (!user) {
         throw new NotFoundException('User not found');
@@ -98,9 +114,9 @@ export class UserService {
 
   async getUserByDepartmentId(departmentId: string): Promise<User[]> {
     try {
-      return await this.userRepository.find({ 
+      return await this.userRepository.find({
         where: { departmentId },
-        relations: ['department']
+        relations: ['department'],
       });
     } catch (err) {
       throw new Error(err);
