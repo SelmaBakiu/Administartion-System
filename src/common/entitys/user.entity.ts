@@ -2,12 +2,14 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
   Generated,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Role } from '../enums/role.enum';
+import { Departament } from './departament.entity';
 
 @Entity()
 export class User {
@@ -45,7 +47,14 @@ export class User {
     length: 255,
     nullable: true,
   })
-  @OneToOne(() => User)
+  @ManyToOne(() => Departament)
+  @JoinColumn({ name: 'departmentId' })
+  department: Departament;
+
+  @Column('varchar', {
+    length: 255,
+    nullable: true,
+  })
   departmentId: string;
 
   @Column({

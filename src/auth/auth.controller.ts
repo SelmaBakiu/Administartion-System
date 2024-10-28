@@ -11,7 +11,7 @@ export class AuthController {
   
   @Public()
   @Post('/signup')
-  async signUp(@Body() signUpDTO:SignUpDTO): Promise<{ access_token: string; user: any }> {
+  async signUp(@Body() signUpDTO:SignUpDTO): Promise<{ token: string; user: any }> {
     return await this.authService.signUp(signUpDTO);
   }
 
@@ -19,10 +19,7 @@ export class AuthController {
   @Post('/signin')
   async signIn(
     @Body() signInDto: SignInDto,
-  ): Promise<{ message: string; data: { access_token: string; user: any } }> {
-    return {
-      message: 'Login successful',
-      data: await this.authService.signIn(signInDto),
-    };
+  ): Promise<{ token: string; user: any } > {
+    return await this.authService.signIn(signInDto);
   }
 }
