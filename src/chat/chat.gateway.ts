@@ -8,10 +8,8 @@ import {
     OnGatewayDisconnect,
   } from '@nestjs/websockets';
   import { Server, Socket } from 'socket.io';
-  import { UseGuards } from '@nestjs/common';
   import { ChatService } from './chat.service';
   import { CreateMessageDto } from './dto/create-message.dto';
-import { AuthGuard } from 'src/common/guards/auth.guard';
   
   @WebSocketGateway({
     cors: {

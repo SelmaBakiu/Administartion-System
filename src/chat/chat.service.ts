@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { Message } from 'src/common/entitys/message.entiry';
 import { UserService } from 'src/user/user.service';
@@ -33,20 +33,20 @@ export class ChatService {
     return await this.messageRepository.save(message);
   }
 
-  async getConversation(senderId: string, receiverId:string,limit:number,page:number): Promise<Message[]> {
-
+  async getConversation(senderId: string, receiverId: string): Promise<Message[]> {
     return await this.messageRepository
       .createQueryBuilder('message')
       .where(
-        '(message.sender_id = :userId AND message.receiver_id = :otherUserId) OR ' +
-        '(message.sender_id = :otherUserId AND message.receiver_id = :userId)',
-        { senderId, receiverId }
+        new Brackets(qb => {
+          qb.where('(message.senderId = :senderId AND message.receiverId = :receiverId)')
+            .orWhere('(message.senderId = :receiverId AND message.receiverId = :senderId)')
+        })
       )
+      .setParameters({ senderId, receiverId }) 
       .orderBy('message.createdAt', 'DESC')
-      .skip(page)
-      .take(limit)
       .getMany();
   }
+  
 
   async markMessageAsRead(messageId: string, userId: string): Promise<Message> {
     const message = await this.messageRepository.findOne({

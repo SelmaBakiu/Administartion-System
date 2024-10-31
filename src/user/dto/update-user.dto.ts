@@ -1,10 +1,6 @@
-import {
-  IsString,
-  IsEnum,
-  IsOptional,
-  IsEmail,
-} from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsEmail, IsUUID } from 'class-validator';
 import { Role } from '../../common/enums/role.enum';
+import { UUID } from 'crypto';
 
 export class UpdateUserDto {
   @IsString()
@@ -22,7 +18,7 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
-  department: string;
+  departmentId: string;
 
   @IsString()
   @IsOptional()
@@ -44,11 +40,4 @@ export class UpdateUserDto {
   @IsOptional()
   role?: Role;
 
-  @IsString()
-  @IsOptional()
-  departamentId: string;
-
-  @IsString()
-  @IsOptional()
-  file: string;
 }

@@ -2,15 +2,18 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsOrder, ILike, Repository, UpdateResult } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { User } from 'src/common/entitys/user.entity';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { generatePassword } from 'src/common/utils/generatePassword';
+import { MailService } from 'src/mail/mail.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -18,141 +21,198 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private firebaseService: FirebaseService,
+    private mailService: MailService,
   ) {}
 
   async createUser(userData: CreateUserDto): Promise<User> {
+    const existingUser = await this.userRepository.findOne({
+      where: { email: userData.email, isDeleted: false },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const password = generatePassword();
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = this.userRepository.create({
+      ...userData,
+      department: userData.departmentId 
+      ? { id: userData.departmentId } 
+      : undefined,
+      password: hashedPassword,
+    });
+
     try {
-      const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash(userData.password, salt);
-      userData.password = hashedPassword;
-      const user = this.userRepository.create(userData);
+      await this.mailService.sendMail({
+        to: user.email,
+        subject: 'Welcome to the app',
+        context: `Your password is ${password}. Please change your password after login.`,
+      });
+
       return await this.userRepository.save(user);
-    } catch (err) {
-      throw new Error(err);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create user');
     }
   }
 
   async updateUser(id: string, userData: UpdateUserDto): Promise<UpdateResult> {
-    try {
-      const existingUser = await this.userRepository.findOne({ where: { id } });
-      if (!existingUser) {
-        throw new NotFoundException('User not found');
-      }
-      const updateData = {
-        ...userData,
-        department: { id: userData.department },
-      };
-      const user = this.userRepository.update(id, updateData);
-      return user;
-    } catch (err) {
-      throw new Error(err);
+    const existingUser = await this.userRepository.findOne({
+      where: { id, isDeleted: false },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
     }
+
+    if (userData.email && userData.email !== existingUser.email) {
+      const emailExists = await this.userRepository.findOne({
+        where: { email: userData.email, isDeleted: false },
+      });
+
+      if (emailExists) {
+        throw new ConflictException('Email already in use');
+      }
+    }
+
+    const updateData = {
+      ...userData,
+      department: userData.departmentId 
+      ? { id: userData.departmentId } 
+      : undefined,
+    };
+    console.log(updateData)
+
+    return await this.userRepository.update(id, updateData);
   }
 
   async findOne(id: string): Promise<User> {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { id },
-      });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      return user;
-    } catch (err) {
-      throw new Error(err);
+    const user = await this.userRepository.findOne({
+      where: { id, isDeleted: false },
+      relations: ['department'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
-  }
-  async getUserById(id: string): Promise<User> {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { id },
-        relations: ['department'],
-      });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      return user;
-    } catch (err) {
-      throw new Error(err);
-    }
+
+    return user;
   }
 
-  async getAllUsers(
-    page: number,
-    limit: number,
+  async getUserForChat(): Promise<User[]> {
+    return await this.userRepository.find({
+      where: { isDeleted: false },
+      select: ['id', 'firstName', 'lastName'],
+      order: { firstName: 'ASC', lastName: 'ASC' },
+    });
+  }
+
+  async getAllUsersByDepartmentId(
+    page: number = 0,
+    limit: number = 10,
     firstName?: string,
     lastName?: string,
+    departmentId?: string,
   ): Promise<{ data: User[]; all: number; page: number }> {
-    try {
-      page = page || 0;
-      limit = limit || 10;
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.department', 'department')
+      .where('user.isDeleted = :isDeleted', { isDeleted: false });
 
-      const data = await this.userRepository.find({
-        where: {
-          firstName: firstName ? ILike(`%${firstName}%`) : undefined,
-          lastName: lastName ? ILike(`%${lastName}%`) : undefined,
-        },
-        relations: ['department'],
-        order: { firstName: 'ASC' },
-        take: limit,
-        skip: page * limit,
+    if (firstName) {
+      queryBuilder.andWhere('LOWER(user.firstName) LIKE LOWER(:firstName)', {
+        firstName: `%${firstName}%`,
       });
-
-      const total = await this.userRepository.count({
-        where: {
-          firstName: firstName ? ILike(`%${firstName}%`) : undefined,
-          lastName: lastName ? ILike(`%${lastName}%`) : undefined,
-          isDeleted: false,
-        },
-      });
-
-      return { data, all: total, page };
-    } catch (err) {
-      throw new Error(err);
     }
+
+    if (lastName) {
+      queryBuilder.andWhere('LOWER(user.lastName) LIKE LOWER(:lastName)', {
+        lastName: `%${lastName}%`,
+      });
+    }
+
+    if (departmentId) {
+      queryBuilder.andWhere('department.id = :departmentId', { departmentId });
+    }
+
+    const [data, total] = await queryBuilder
+      .orderBy('user.firstName', 'ASC')
+      .addOrderBy('user.lastName', 'ASC')
+      .take(limit)
+      .skip(page * limit)
+      .getManyAndCount();
+
+    return { data, all: total, page };
   }
 
-  async getUserByDepartmentId(departmentId: string): Promise<User[]> {
-    try {
-      return await this.userRepository.find({
-        where: { departmentId },
-        relations: ['department'],
-      });
-    } catch (err) {
-      throw new Error(err);
-    }
+  async findUserByDepartmentId(departmentId: string): Promise<User[]> {
+    return await this.userRepository.find({
+      where: {
+        department: { id: departmentId },
+        isDeleted: false,
+      },
+      relations: ['department'],
+    });
   }
 
   async deleteUser(id: string): Promise<void> {
-    try {
-      const user = await this.userRepository.findOne({ where: { id } });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      await this.userRepository.update(id, { isDeleted: true });
-    } catch (err) {
-      throw new Error(err);
+    const user = await this.userRepository.findOne({
+      where: { id, isDeleted: false },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    await this.userRepository.update(id, { isDeleted: true });
   }
 
   async uploadImage(
     file: Express.Multer.File,
     userId: string,
   ): Promise<string> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId, isDeleted: false },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     try {
       const profileImageUrl = await this.firebaseService.uploadFile(
         file,
         'profileImages',
         'square',
       );
-      await this.userRepository.update(userId, {
-        profileImageUrl,
-      });
 
+      await this.userRepository.update(userId, { profileImageUrl });
       return profileImageUrl;
     } catch (error) {
-      console.error('Error uploading file:', error);
-      throw new ConflictException('Failed to upload file');
+      throw new InternalServerErrorException('Failed to upload image');
     }
+  }
+
+  async changePassword(id: string, password: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { id, isDeleted: false },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!password || password.length < 8) {
+      throw new BadRequestException(
+        'Password must be at least 8 characters long',
+      );
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    await this.userRepository.update(id, { password: hashedPassword });
   }
 }
