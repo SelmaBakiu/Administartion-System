@@ -36,6 +36,16 @@ export class ChatService {
   async getConversation(senderId: string, receiverId: string): Promise<Message[]> {
     return await this.messageRepository
       .createQueryBuilder('message')
+      .leftJoin('message.sender', 'sender')   
+      .leftJoin('message.receiver', 'receiver') 
+      .select([
+        'message.id',
+        'message.content',
+        'message.isRead',
+        'message.createdAt',
+        'sender.id',  
+        'receiver.id'   
+      ])
       .where(
         new Brackets(qb => {
           qb.where('(message.senderId = :senderId AND message.receiverId = :receiverId)')
@@ -46,7 +56,6 @@ export class ChatService {
       .orderBy('message.createdAt', 'DESC')
       .getMany();
   }
-  
 
   async markMessageAsRead(messageId: string, userId: string): Promise<Message> {
     const message = await this.messageRepository.findOne({

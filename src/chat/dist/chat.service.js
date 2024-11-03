@@ -89,6 +89,16 @@ var ChatService = /** @class */ (function () {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.messageRepository
                             .createQueryBuilder('message')
+                            .leftJoin('message.sender', 'sender')
+                            .leftJoin('message.receiver', 'receiver')
+                            .select([
+                            'message.id',
+                            'message.content',
+                            'message.isRead',
+                            'message.createdAt',
+                            'sender.id',
+                            'receiver.id'
+                        ])
                             .where(new typeorm_2.Brackets(function (qb) {
                             qb.where('(message.senderId = :senderId AND message.receiverId = :receiverId)')
                                 .orWhere('(message.senderId = :receiverId AND message.receiverId = :senderId)');

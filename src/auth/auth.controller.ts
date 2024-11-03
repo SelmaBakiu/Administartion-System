@@ -21,6 +21,7 @@ export class AuthController {
   async signIn(
     @Body() signInDto: SignInDto,
   ): Promise<{ token: string; user: User } > {
+    console.log("singin")
     return await this.authService.signIn(signInDto);
   }
 

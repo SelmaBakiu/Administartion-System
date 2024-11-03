@@ -24,7 +24,6 @@ export class ChatController {
 
   @Get('unread')
   async getUnreadCount(@Request() req) {
-    console.log('unread',req.userConnected);
     return await this.chatService.getUnreadCount(req);
   }
 }

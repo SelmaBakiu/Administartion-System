@@ -91,6 +91,11 @@ export class DepartmentService {
     return department;
   }
 
+  async getDepartmentTree(){
+       
+
+  }
+
   async deleteDepartment(id: string): Promise<void> {
     const department = await this.departmentRepository.findOne({
       where: { id, isDeleted: false },

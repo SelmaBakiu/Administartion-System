@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { generatePassword } from 'src/common/utils/generatePassword';
 import { MailService } from 'src/mail/mail.service';
 import * as bcrypt from 'bcrypt';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class UserService {
@@ -25,27 +26,27 @@ export class UserService {
   ) {}
 
   async createUser(userData: CreateUserDto): Promise<User> {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: userData.email, isDeleted: false },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
-    }
-
-    const password = generatePassword();
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = this.userRepository.create({
-      ...userData,
-      department: userData.departmentId 
-      ? { id: userData.departmentId } 
-      : undefined,
-      password: hashedPassword,
-    });
-
     try {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: userData.email, isDeleted: false },
+      });
+
+      if (existingUser) {
+        throw new ConflictException('User with this email already exists');
+      }
+
+      const password = generatePassword();
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const user = this.userRepository.create({
+        ...userData,
+        department: userData.departmentId
+          ? { id: userData.departmentId }
+          : undefined,
+        password: hashedPassword,
+      });
+
       await this.mailService.sendMail({
         to: user.email,
         subject: 'Welcome to the app',
@@ -54,6 +55,7 @@ export class UserService {
 
       return await this.userRepository.save(user);
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException('Failed to create user');
     }
   }
@@ -79,11 +81,11 @@ export class UserService {
 
     const updateData = {
       ...userData,
-      department: userData.departmentId 
-      ? { id: userData.departmentId } 
-      : undefined,
+      department: userData.departmentId
+        ? { id: userData.departmentId }
+        : undefined,
     };
-    console.log(updateData)
+    console.log(updateData);
 
     return await this.userRepository.update(id, updateData);
   }
@@ -104,7 +106,7 @@ export class UserService {
   async getUserForChat(): Promise<User[]> {
     return await this.userRepository.find({
       where: { isDeleted: false },
-      select: ['id', 'firstName', 'lastName'],
+      select: ['id', 'firstName', 'lastName', 'profileImageUrl'],
       order: { firstName: 'ASC', lastName: 'ASC' },
     });
   }
@@ -195,7 +197,10 @@ export class UserService {
     }
   }
 
-  async changePassword(id: string, password: string): Promise<void> {
+  async changePassword(
+    id: string,
+    resetPasswordDto:ResetPasswordDto
+  ): Promise<void> {
     const user = await this.userRepository.findOne({
       where: { id, isDeleted: false },
     });
@@ -203,16 +208,11 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
-    if (!password || password.length < 8) {
-      throw new BadRequestException(
-        'Password must be at least 8 characters long',
-      );
-    }
-
     const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    if (!(await bcrypt.compare(resetPasswordDto.oldPassword, user.password)).valueOf()) {
+      throw new BadRequestException('Old passsword is not current');
+    }
+    const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, salt);
     await this.userRepository.update(id, { password: hashedPassword });
   }
 }

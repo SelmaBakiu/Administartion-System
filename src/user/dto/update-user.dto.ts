@@ -1,7 +1,5 @@
-import { IsString, IsEnum, IsOptional, IsEmail, IsUUID } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsEmail } from 'class-validator';
 import { Role } from '../../common/enums/role.enum';
-import { UUID } from 'crypto';
-
 export class UpdateUserDto {
   @IsString()
   @IsOptional()

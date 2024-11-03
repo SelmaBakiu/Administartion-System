@@ -18,6 +18,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('user')
 @UseGuards(AuthGuard, RolesGuard)
@@ -34,9 +35,12 @@ export class UserController {
   @Post('/reset-password/:id')
   async resetPassword(
     @Param('id') id: string,
-    @Body() newPassword: string,
+    @Body()
+    resetPasswordDto:ResetPasswordDto,
   ): Promise<void> {
-    return await this.userService.changePassword(id, newPassword);
+    return await this.userService.changePassword(
+      id,resetPasswordDto
+    );
   }
 
   @Get()
