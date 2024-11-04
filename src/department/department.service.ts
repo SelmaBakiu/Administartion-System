@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Department } from 'src/common/entitys/department.entity';
 import { Repository } from 'typeorm';
@@ -24,14 +29,16 @@ export class DepartmentService {
     });
 
     if (existingDepartment) {
-      throw new ConflictException('Department with this name already exists in the specified parent department');
+      throw new ConflictException(
+        'Department with this name already exists in the specified parent department',
+      );
     }
 
     if (createDepartmentDto.parentDepartmentId) {
       const parentDepartment = await this.departmentRepository.findOne({
         where: { id: createDepartmentDto.parentDepartmentId, isDeleted: false },
       });
-      
+
       if (!parentDepartment) {
         throw new NotFoundException('Parent department not found');
       }
@@ -41,7 +48,10 @@ export class DepartmentService {
     return await this.departmentRepository.save(department);
   }
 
-  async update(id: string, updateDepartmentDTO: UpdateDepartmentDTO): Promise<Department> {
+  async update(
+    id: string,
+    updateDepartmentDTO: UpdateDepartmentDTO,
+  ): Promise<Department> {
     const existingDepartment = await this.departmentRepository.findOne({
       where: { id, isDeleted: false },
     });
@@ -73,9 +83,9 @@ export class DepartmentService {
   }
 
   async getAllDepartments(): Promise<Department[]> {
-    return this.departmentRepository.find({ 
+    return this.departmentRepository.find({
       where: { isDeleted: false },
-      order: { name: 'ASC' }
+      order: { name: 'ASC' },
     });
   }
 
@@ -91,10 +101,7 @@ export class DepartmentService {
     return department;
   }
 
-  async getDepartmentTree(){
-       
-
-  }
+  async getDepartmentTree() {}
 
   async deleteDepartment(id: string): Promise<void> {
     const department = await this.departmentRepository.findOne({
@@ -107,14 +114,18 @@ export class DepartmentService {
 
     const employees = await this.userService.findUserByDepartmentId(id);
     if (employees.length > 0) {
-      throw new BadRequestException('Cannot delete department that has employees');
+      throw new BadRequestException(
+        'Cannot delete department that has employees',
+      );
     }
 
     const children = await this.departmentRepository.find({
       where: { parentDepartmentId: id, isDeleted: false },
     });
-    if(children.length > 0){
-      throw new BadRequestException('Cannot delete department that has departments.')
+    if (children.length > 0) {
+      throw new BadRequestException(
+        'Cannot delete department that has departments.',
+      );
     }
 
     await this.departmentRepository.update(id, { isDeleted: true });

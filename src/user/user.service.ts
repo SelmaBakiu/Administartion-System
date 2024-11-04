@@ -197,7 +197,7 @@ export class UserService {
 
   async changePassword(
     id: string,
-    resetPasswordDto:ResetPasswordDto
+    resetPasswordDto: ResetPasswordDto,
   ): Promise<void> {
     const user = await this.userRepository.findOne({
       where: { id, isDeleted: false },
@@ -207,10 +207,17 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     const salt = await bcrypt.genSalt();
-    if (!(await bcrypt.compare(resetPasswordDto.oldPassword, user.password)).valueOf()) {
+    if (
+      !(
+        await bcrypt.compare(resetPasswordDto.oldPassword, user.password)
+      ).valueOf()
+    ) {
       throw new BadRequestException('Old passsword is not current');
     }
-    const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, salt);
+    const hashedPassword = await bcrypt.hash(
+      resetPasswordDto.newPassword,
+      salt,
+    );
     await this.userRepository.update(id, { password: hashedPassword });
   }
 }

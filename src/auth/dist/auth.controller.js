@@ -52,23 +52,11 @@ var AuthController = /** @class */ (function () {
     function AuthController(authService) {
         this.authService = authService;
     }
-    AuthController.prototype.signUp = function (signUpDTO) {
-        return __awaiter(this, void 0, Promise, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.authService.signUp(signUpDTO)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
     AuthController.prototype.signIn = function (signInDto) {
         return __awaiter(this, void 0, Promise, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        console.log("singin");
-                        return [4 /*yield*/, this.authService.signIn(signInDto)];
+                    case 0: return [4 /*yield*/, this.authService.signIn(signInDto)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -77,16 +65,10 @@ var AuthController = /** @class */ (function () {
     AuthController.prototype.forgotPassword = function (body) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                console.log('Received request with email:', body.email);
                 return [2 /*return*/, this.authService.forgotPassword(body.email)];
             });
         });
     };
-    __decorate([
-        public_decorator_1.Public(),
-        common_1.Post('/signup'),
-        __param(0, common_1.Body())
-    ], AuthController.prototype, "signUp");
     __decorate([
         public_decorator_1.Public(),
         common_1.Post('/signin'),

@@ -36,11 +36,9 @@ export class UserController {
   async resetPassword(
     @Param('id') id: string,
     @Body()
-    resetPasswordDto:ResetPasswordDto,
+    resetPasswordDto: ResetPasswordDto,
   ): Promise<void> {
-    return await this.userService.changePassword(
-      id,resetPasswordDto
-    );
+    return await this.userService.changePassword(id, resetPasswordDto);
   }
 
   @Get()

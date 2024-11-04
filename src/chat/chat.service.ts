@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Brackets } from 'typeorm';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -13,7 +17,10 @@ export class ChatService {
     private userService: UserService,
   ) {}
 
-  async createMessage(senderId: string, createMessageDto: CreateMessageDto): Promise<Message> {
+  async createMessage(
+    senderId: string,
+    createMessageDto: CreateMessageDto,
+  ): Promise<Message> {
     const { content, receiverId } = createMessageDto;
 
     const sender = await this.userService.findOne(senderId);
@@ -33,26 +40,32 @@ export class ChatService {
     return await this.messageRepository.save(message);
   }
 
-  async getConversation(senderId: string, receiverId: string): Promise<Message[]> {
+  async getConversation(
+    senderId: string,
+    receiverId: string,
+  ): Promise<Message[]> {
     return await this.messageRepository
       .createQueryBuilder('message')
-      .leftJoin('message.sender', 'sender')   
-      .leftJoin('message.receiver', 'receiver') 
+      .leftJoin('message.sender', 'sender')
+      .leftJoin('message.receiver', 'receiver')
       .select([
         'message.id',
         'message.content',
         'message.isRead',
         'message.createdAt',
-        'sender.id',  
-        'receiver.id'   
+        'sender.id',
+        'receiver.id',
       ])
       .where(
-        new Brackets(qb => {
-          qb.where('(message.senderId = :senderId AND message.receiverId = :receiverId)')
-            .orWhere('(message.senderId = :receiverId AND message.receiverId = :senderId)')
-        })
+        new Brackets((qb) => {
+          qb.where(
+            '(message.senderId = :senderId AND message.receiverId = :receiverId)',
+          ).orWhere(
+            '(message.senderId = :receiverId AND message.receiverId = :senderId)',
+          );
+        }),
       )
-      .setParameters({ senderId, receiverId }) 
+      .setParameters({ senderId, receiverId })
       .orderBy('message.createdAt', 'DESC')
       .getMany();
   }
@@ -60,7 +73,7 @@ export class ChatService {
   async markMessageAsRead(messageId: string, userId: string): Promise<Message> {
     const message = await this.messageRepository.findOne({
       where: { id: messageId },
-      relations: ['receiver'] 
+      relations: ['receiver'],
     });
 
     if (!message) {

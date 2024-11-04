@@ -1,13 +1,10 @@
-import { IsNotEmpty, IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateMessageDto {
+  @IsString()
+  @IsNotEmpty()
+  content: string;
 
-    @IsString()
-    @IsNotEmpty()
-    content: string;
-
-    @IsUUID()
-    receiverId: string;
-  }
-  
-  
+  @IsUUID()
+  receiverId: string;
+}

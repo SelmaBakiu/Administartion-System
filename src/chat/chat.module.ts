@@ -7,11 +7,8 @@ import { Message } from 'src/common/entitys/message.entiry';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Message]),
-    UserModule
-  ],
+  imports: [TypeOrmModule.forFeature([Message]), UserModule],
   providers: [ChatGateway, ChatService],
-  controllers: [ChatController]
+  controllers: [ChatController],
 })
 export class ChatModule {}

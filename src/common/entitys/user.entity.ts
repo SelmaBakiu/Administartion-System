@@ -43,15 +43,15 @@ export class User {
   })
   role: Role;
   @ManyToOne(() => Department, {
-    eager: true, 
+    eager: true,
     nullable: true,
   })
-  @JoinColumn({ name: 'departmentId' }) 
+  @JoinColumn({ name: 'departmentId' })
   department: Department;
 
-  @Column('uuid', { 
-    nullable: true, 
-    name: 'departmentId' 
+  @Column('uuid', {
+    nullable: true,
+    name: 'departmentId',
   })
   departmentId: string;
 

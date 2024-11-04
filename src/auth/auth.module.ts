@@ -16,7 +16,7 @@ import { MailModule } from 'src/mail/mail.module';
       signOptions: { expiresIn: '1y' },
     }),
     forwardRef(() => UserModule),
-    MailModule
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

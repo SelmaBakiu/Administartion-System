@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Param, Request } from '@nestjs/common';
 import { ChatService } from './chat.service';
 
 @Controller('chat')
@@ -15,10 +10,7 @@ export class ChatController {
     @Param('senderId') senderId: string,
     @Param('receiverId') receiverId: string,
   ) {
-    return await this.chatService.getConversation(
-      senderId,
-      receiverId
-    );
+    return await this.chatService.getConversation(senderId, receiverId);
   }
 
   @Get('unread')
