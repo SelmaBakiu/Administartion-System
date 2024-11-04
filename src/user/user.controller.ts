@@ -18,6 +18,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('user')
 @UseGuards(AuthGuard, RolesGuard)
@@ -30,27 +31,47 @@ export class UserController {
     return await this.userService.createUser(createUserDto);
   }
 
+  @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
+  @Post('/reset-password/:id')
+  async resetPassword(
+    @Param('id') id: string,
+    @Body()
+    resetPasswordDto:ResetPasswordDto,
+  ): Promise<void> {
+    return await this.userService.changePassword(
+      id,resetPasswordDto
+    );
+  }
+
   @Get()
   @Roles(Role.ADMINISTRATOR)
-  async getAllUsers(
+  async getUsersByDepartment(
+    @Param('id') id: string,
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('firstName') firstName?: string,
     @Query('lastName') lastName?: string,
+    @Query('departmentId') departmentId?: string,
   ) {
-    return await this.userService.getAllUsers(page, limit, firstName, lastName);
+    return await this.userService.getAllUsersByDepartmentId(
+      page,
+      limit,
+      firstName,
+      lastName,
+      departmentId,
+    );
   }
 
-  @Get('departament/:id')
-  @Roles(Role.ADMINISTRATOR)
-  async getUsersByDepartament(@Param('id') id: string) {
-    return await this.userService.getUserByDepartmentId(id);
+  @Get('chat')
+  @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
+  async getUserForChat() {
+    return await this.userService.getUserForChat();
   }
 
   @Get(':id')
   @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
   async getUserById(@Param('id') id: string) {
-    return await this.userService.getUserById(id);
+    return await this.userService.findOne(id);
   }
 
   @Patch(':id')

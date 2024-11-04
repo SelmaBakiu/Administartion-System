@@ -9,7 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Role } from '../enums/role.enum';
-import { Departament } from './departament.entity';
+import { Department } from './department.entity';
 
 @Entity()
 export class User {
@@ -42,18 +42,16 @@ export class User {
     default: Role.ADMINISTRATOR,
   })
   role: Role;
-
-  @Column('varchar', {
-    length: 255,
+  @ManyToOne(() => Department, {
+    eager: true, 
     nullable: true,
   })
-  @ManyToOne(() => Departament)
-  @JoinColumn({ name: 'departmentId' })
-  department: Departament;
+  @JoinColumn({ name: 'departmentId' }) 
+  department: Department;
 
-  @Column('varchar', {
-    length: 255,
-    nullable: true,
+  @Column('uuid', { 
+    nullable: true, 
+    name: 'departmentId' 
   })
   departmentId: string;
 
@@ -70,14 +68,16 @@ export class User {
   })
   phoneNumber: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column('date', {
+    nullable: true,
+  })
   dateOfBirth: Date;
 
   @Column({ nullable: true })
   address: string;
 
   @Column('varchar', {
-    length: 255,
+    length: 1020,
     nullable: true,
   })
   profileImageUrl: string;
