@@ -15,7 +15,6 @@ export class ChatController {
     @Param('senderId') senderId: string,
     @Param('receiverId') receiverId: string,
   ) {
-    console.log('conversation');
     return await this.chatService.getConversation(
       senderId,
       receiverId

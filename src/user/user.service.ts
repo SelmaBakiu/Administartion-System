@@ -55,7 +55,6 @@ export class UserService {
 
       return await this.userRepository.save(user);
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException('Failed to create user');
     }
   }
@@ -85,7 +84,6 @@ export class UserService {
         ? { id: userData.departmentId }
         : undefined,
     };
-    console.log(updateData);
 
     return await this.userRepository.update(id, updateData);
   }

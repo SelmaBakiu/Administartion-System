@@ -77,14 +77,12 @@ export class UserController {
   @Patch(':id')
   @Roles(Role.ADMINISTRATOR, Role.EMPLOYEE)
   async updateUser(@Param('id') id: string, @Body() updateUserDto) {
-    console.log('Update user', updateUserDto);
     return await this.userService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
   @Roles(Role.ADMINISTRATOR)
   async deleteUser(@Param('id') id: string) {
-    console.log('Delete user', id);
     return await this.userService.deleteUser(id);
   }
 

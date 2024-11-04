@@ -7,7 +7,6 @@ export class MailService {
   constructor(private readonly mailService: MailerService) {}
 
   async sendMail(dataMailer: MailContent): Promise<void> {
-    console.log('dataMailer', dataMailer);
     await this.mailService.sendMail({
       from: process.env.MAIL_SENDER,
       to: dataMailer.to,

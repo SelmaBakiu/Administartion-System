@@ -21,13 +21,11 @@ export class AuthController {
   async signIn(
     @Body() signInDto: SignInDto,
   ): Promise<{ token: string; user: User } > {
-    console.log("singin")
     return await this.authService.signIn(signInDto);
   }
 
   @Post('forgot-password')
   async forgotPassword(@Body() body: { email: string }) {
-      console.log('Received request with email:', body.email);
       return this.authService.forgotPassword(body.email);
   }
 

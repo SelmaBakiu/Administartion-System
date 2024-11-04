@@ -94,7 +94,6 @@ export class AuthService {
       }
 
       const password = generatePassword();
-      console.log('New password is :', password);
       await this.mailService.sendMail({
         to: user.email,
         subject: 'Forgot Password',
