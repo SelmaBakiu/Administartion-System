@@ -34,6 +34,8 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
-  await app.listen(3000);
+    // Use Render's dynamic port
+    const port = process.env.PORT || 3000; // Default to 3000 if not provided by Render
+    await app.listen(port);
 }
 bootstrap();
