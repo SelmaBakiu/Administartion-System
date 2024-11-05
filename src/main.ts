@@ -30,12 +30,13 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: ['http://localhost:5173','https://administration-system-7ba8e.web.app/'],
+    origin: ['http://localhost:5173', 'https://administration-system-7ba8e.web.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
-    // Use Render's dynamic port
-    const port = process.env.PORT || 3000; // Default to 3000 if not provided by Render
-    await app.listen(port);
+
+  // Use Render's dynamic port
+  const port = process.env.PORT || 3000; // Default to 3000 if not provided by Render
+  await app.listen(port);
 }
 bootstrap();

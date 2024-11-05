@@ -67,7 +67,7 @@ function bootstrap() {
                         transform: true
                     }));
                     app.enableCors({
-                        origin: ['http://localhost:5173', 'https://administration-system-7ba8e.web.app/'],
+                        origin: ['http://localhost:5173', 'https://administration-system-7ba8e.web.app'],
                         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
                         credentials: true
                     });
